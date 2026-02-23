@@ -2,9 +2,10 @@ import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 
 
-const generateReferral = (name) => {
+const generateReferral = (name = "USER") => {
+    const base = name.split(' ')[0] || "USER";
     const randomStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-    return `${name.split(' ')[0]}-${randomStr}`;
+    return `${base}-${randomStr}`;
 };
 
 //register
@@ -23,7 +24,7 @@ export const registerUser = async (req, res) => {
             name,
             email,
             password,
-            role: role || "customer",
+            role: role === "organizer" ? "organizer" : "customer",
             referralCode: generateReferral(name),
             isVerifiedOrganizer: role === "organizer" ? false : undefined
         });
