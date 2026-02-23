@@ -10,6 +10,7 @@ const generateReferral = (name = "USER") => {
 
 //register
 export const registerUser = async (req, res) => {
+    console.log("REGISTER HIT");
     try {
         const { name, email, password, role } = req.body;
 
@@ -40,6 +41,7 @@ export const registerUser = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error);
         res.status(500).json({ message: error.message });
     }
 };
