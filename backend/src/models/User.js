@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
 
     isVerifiedOrganizer: {
         type: Boolean,
-        default: false
+
     },
 
     referralCode: {
@@ -60,4 +60,6 @@ userSchema.methods.matchPassword = async function (enterPassword) {
 const User = mongoose.model("User", userSchema);
 
 export default User;
+
+
 
