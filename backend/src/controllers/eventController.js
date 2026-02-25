@@ -3,6 +3,7 @@ import TicketTier from "../models/TicketTier.js";
 
 export const createEvent = async (req, res) => {
     try {
+        console.log("Body received:", req.body);
         const { title, description, category, date, location, tiers } = req.body;
 
         // 1. Create the Event (Status defaults to 'draft')

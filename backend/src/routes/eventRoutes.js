@@ -1,6 +1,6 @@
 import express from "express";
-import { createEvent } from "../controllers/eventController";
-import { protect, authorizeRoles } from "../middleware/authMiddleware";
+import { createEvent } from "../controllers/eventController.js";
+import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
