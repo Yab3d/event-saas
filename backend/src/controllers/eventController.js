@@ -47,4 +47,38 @@ export const createEvent = async (req, res) => {
 
         res.status(500).json({ message: "Transaction failed: " + error.message });
     }
+}
+
+// adding updating the event functionality
+export const updateEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 1. Find the event
+        const event = await Event.findById(id);
+
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+
+        //check if the user is the orgnaizer 
+        if (event.organizer.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: "Unauthorized: You do not own this event" });
+        }
+
+        // Apply the changes from the request body
+        const updatedEvent = await Event.findByIdAndUpdate(
+            id,
+            { $set: req.body },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({
+            message: "Event updated successfully",
+            updatedEvent
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
