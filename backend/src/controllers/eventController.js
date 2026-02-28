@@ -87,7 +87,10 @@ export const updateEvent = async (req, res) => {
 
 export const getPublicEvents = async (req, res) => {
     try {
-        const events = (await Event.find({ status: "approved" }).populate("organizer", "name")).sort({ date: 1 });
+        let query = Event.find({ status: "approved" }).populate("organizer", "name");
+        query = query.sort({ date: 1 });
+
+        const events = await query.exec();
         res.status(200).json(events);
     } catch (error) {
         res.status(500).json({ message: error.message });
