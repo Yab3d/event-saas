@@ -82,3 +82,33 @@ export const updateEvent = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+//get all approved events for the public 
+
+export const getPublicEvents = async (req, res) => {
+    try {
+        const events = (await Event.find({ status: "approved" }).populate("organizer", "name")).sort({ date: 1 });
+        res.status(200).json(events);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+//get a single event's details with its ticket tiers 
+
+export const getEventById = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id).populate("organizer", "name");
+
+        if (!event) {
+            return res.status(404).json({ message: "Event not found" });
+        }
+        const tickets = await TicketTier.find({ event: req.params.id });
+        res.status(200).json({ event, tickets });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+
+};
