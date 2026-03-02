@@ -20,7 +20,7 @@ export const reviewEvent = async (req, res) => {
 
         if (!event) {
             return res.status(404).json({
-                message: "Event not found "
+                message: "no event found"
             });
         }
         event.status = status;
