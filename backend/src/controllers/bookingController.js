@@ -1,6 +1,10 @@
 import Booking from '../models/Booking.js';
 import TicketTier from '../models/TicketTier.js';
 import Event from '../models/Event.js';
+import axios from 'axios';
+
+
+const generateTxRef = (userId) => `TX-${userId}-${Date.now()}`;
 
 /**
  * @desc    Create a new booking and update ticket inventory
@@ -9,59 +13,62 @@ import Event from '../models/Event.js';
  */
 export const createBooking = async (req, res) => {
     try {
-        const { eventId, ticketTierId, quantity, referralCodeUsed } = req.body;
+        const { eventId, ticketTierId, quantity } = req.body;
 
-        // Verify the Event exists and is approved
         const event = await Event.findById(eventId);
-        if (!event || event.status !== 'approved') {
-            return res.status(404).json({ message: "Event not found or not available for booking" });
-        }
-
-        //  Find the specific Ticket Tier
         const tier = await TicketTier.findById(ticketTierId);
-        if (!tier) {
-            return res.status(404).json({ message: "Ticket tier not found" });
+
+        if (!tier || tier.quantityAvailable < quantity) {
+            return res.status(400).json({ message: "Tickets unavailable" });
         }
 
-        //  Check if enough tickets are available
-        if (tier.quantityAvailable < quantity) {
-            return res.status(400).json({ message: `Only ${tier.quantityAvailable} tickets left for this tier` });
-        }
-
-        //Calculations
         const totalAmount = tier.price * quantity;
-        const PLATFORM_FEE_PERCENT = 0.05; // 5% fee for the platform
-        const platformFeeAmount = totalAmount * PLATFORM_FEE_PERCENT;
-        const organizerRevenue = totalAmount - platformFeeAmount;
+        const tx_ref = generateTxRef(req.user._id);
 
-        // Create the Booking instance
-        const booking = new Booking({
-            user: req.user._id, // Set by authMiddleware
-            event: eventId,
-            ticketTier: ticketTierId,
-            quantity,
-            totalAmount,
-            platformFeeAmount,
-            organizerRevenue,
-            referralCodeUsed: referralCodeUsed || null,
-            bookingStatus: 'confirmed'
+        // Prepare Chapa Payload
+        const chapaData = {
+            amount: totalAmount.toString(),
+            currency: "ETB",
+            email: req.user.email,
+            first_name: req.user.firstName,
+            last_name: req.user.lastName,
+            tx_ref: tx_ref,
+            callback_url: "http://localhost:5000/api/bookings/verify-payment/" + tx_ref,
+            return_url: "http://localhost:3000/payment-success", // Frontend URL
+            "customization[title]": "Ticket Payment",
+            "customization[description]": `Booking for ${event.title}`
+        };
+
+        // Initialize Chapa Transaction
+        const response = await axios.post(process.env.CHAPA_API_URL, chapaData, {
+            headers: { Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}` }
         });
 
-        // Subtract the tickets sold
-        tier.quantityAvailable -= quantity;
+        if (response.data.status === "success") {
+            // 3. Create "Pending" Booking in our DB
+            const booking = new Booking({
+                user: req.user._id,
+                event: eventId,
+                ticketTier: ticketTierId,
+                quantity,
+                totalAmount,
+                platformFeeAmount: totalAmount * 0.05,
+                organizerRevenue: totalAmount * 0.95,
+                bookingStatus: 'pending',
+                paymentReference: tx_ref
+            });
 
-        // Save both to the database
-        await tier.save();
-        await booking.save();
+            await booking.save();
 
-        res.status(201).json({
-            success: true,
-            message: "Ticket booked successfully",
-            data: booking
-        });
-
+            // Send the payment link to the user
+            res.status(200).json({
+                success: true,
+                payment_url: response.data.data.checkout_url,
+                bookingId: booking._id
+            });
+        }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: error.response?.data?.message || error.message });
     }
 };
 
