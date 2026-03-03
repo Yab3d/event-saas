@@ -1,25 +1,25 @@
 import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
-    user: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: true 
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
     },
-    event: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Event", 
-        required: true 
+    event: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Event",
+        required: true
     },
-    ticketTier: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "TicketTier", 
-        required: true 
+    ticketTier: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "TicketTier",
+        required: true
     },
-    quantity: { 
-        type: Number, 
-        required: true, 
-        min: 1 
+    quantity: {
+        type: Number,
+        required: true,
+        min: 1
     },
     totalAmount: { type: Number, required: true },
     platformFeeAmount: { type: Number, required: true },
@@ -30,10 +30,10 @@ const bookingSchema = new mongoose.Schema({
         enum: ["pending", "confirmed", "cancelled"],
         default: "pending"
     },
-    payment: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "Payment" 
+    payment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Payment"
     }
-}, { timestamps: true }); 
+}, { timestamps: true });
 
 export default mongoose.model('Booking', bookingSchema);
