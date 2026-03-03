@@ -44,7 +44,7 @@ export const createBooking = async (req, res) => {
             platformFeeAmount,
             organizerRevenue,
             referralCodeUsed: referralCodeUsed || null,
-            bookingStatus: 'confirmed' 
+            bookingStatus: 'confirmed'
         });
 
         // Subtract the tickets sold
@@ -77,6 +77,69 @@ export const getMyBookings = async (req, res) => {
             .populate('ticketTier', 'name price');
 
         res.status(200).json(bookings);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+
+/**
+ * @desc    Get all sales for a specific event (Organizer only)
+ * @route   GET /api/bookings/event/:eventId
+ * @access  Private (Organizer)
+ */
+export const getEventSales = async (req, res) => {
+    try {
+        const { eventId } = req.params;
+
+        //  Check if event exists and belongs to this organizer
+        const event = await Event.findById(eventId);
+        if (!event) return res.status(404).json({ message: "Event not found" });
+
+        if (event.organizer.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Not authorized to see these sales" });
+        }
+
+        //  Fetch all bookings for this event
+        const sales = await Booking.find({ event: eventId })
+            .populate('user', 'firstName lastName email')
+            .populate('ticketTier', 'name');
+
+        //  Calculate simple stats
+        const totalTicketsSold = sales.reduce((acc, curr) => acc + curr.quantity, 0);
+        const totalRevenue = sales.reduce((acc, curr) => acc + curr.organizerRevenue, 0);
+
+        res.status(200).json({
+            success: true,
+            stats: {
+                totalTicketsSold,
+                totalOrganizerRevenue: totalRevenue
+            },
+            data: sales
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * @desc    Get all bookings on the platform (Admin only)
+ * @route   GET /api/bookings/all
+ * @access  Private (Admin)
+ */
+export const getAllBookings = async (req, res) => {
+    try {
+        const bookings = await Booking.find()
+            .populate('user', 'firstName lastName email')
+            .populate('event', 'title')
+            .populate('ticketTier', 'name price');
+
+        res.status(200).json({
+            success: true,
+            count: bookings.length,
+            data: bookings
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
