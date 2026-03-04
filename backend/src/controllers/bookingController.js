@@ -188,6 +188,7 @@ export const verifyPayment = async (req, res) => {
             const tier = await TicketTier.findById(booking.ticketTier);
             if (tier) {
                 tier.quantityAvailable -= booking.quantity;
+                tier.quantitySold += booking.quantity;
                 await tier.save();
             }
 
