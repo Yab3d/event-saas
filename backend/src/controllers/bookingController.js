@@ -151,3 +151,55 @@ export const getAllBookings = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+
+/**
+ * @desc    Verify Chapa payment and confirm booking
+ * @route   GET /api/bookings/verify-payment/:tx_ref
+ * @access  Public (Called by Chapa or Frontend)
+ */
+export const verifyPayment = async (req, res) => {
+    try {
+        const { tx_ref } = req.params;
+
+        // Ask Chapa if this transaction is actually PAID
+        const response = await axios.get(`https://api.chapa.co/v1/transaction/verify/${tx_ref}`, {
+            headers: { Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}` }
+        });
+
+        if (response.data.status === "success") {
+            const transactionData = response.data.data;
+
+            // Find the pending booking
+            const booking = await Booking.findOne({ paymentReference: tx_ref });
+            if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+            // If already confirmed, just return success
+            if (booking.bookingStatus === 'confirmed') {
+                return res.status(200).json({ message: "Booking already confirmed", booking });
+            }
+
+            // Update Booking Status
+            booking.bookingStatus = 'confirmed';
+            await booking.save();
+
+            // Subtract Inventory now that they've ACTUALLY paid
+            const tier = await TicketTier.findById(booking.ticketTier);
+            if (tier) {
+                tier.quantityAvailable -= booking.quantity;
+                await tier.save();
+            }
+
+            res.status(200).json({
+                success: true,
+                message: "Payment verified and booking confirmed!",
+                booking
+            });
+        } else {
+            res.status(400).json({ message: "Payment verification failed" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.response?.data?.message || error.message });
+    }
+};
