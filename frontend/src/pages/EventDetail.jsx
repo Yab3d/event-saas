@@ -83,8 +83,8 @@ const EventDetail = () => {
                         </div>
 
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">{event.title}</h1>
-                            <p className="text-lg text-slate-400 leading-relaxed mb-6">
+                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4">{event.title}</h1>
+                            <p className="text-base md:text-lg text-slate-400 leading-relaxed mb-6">
                                 {event.description || "No description provided for this event."}
                             </p>
                             

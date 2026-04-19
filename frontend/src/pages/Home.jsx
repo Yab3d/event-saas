@@ -56,14 +56,14 @@ const Home = () => {
 
             {/* Hero Section */}
             <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden border-b border-white/5">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/20 blur-[120px] rounded-full pointer-events-none" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[800px] md:h-[800px] bg-indigo-500/20 blur-[80px] md:blur-[120px] rounded-full pointer-events-none" />
                 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6">
+                    <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-4 md:mb-6">
                         Discover Your Next <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">Unforgettable Experience</span>
                     </h1>
-                    <p className="mt-4 text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+                    <p className="mt-4 text-base sm:text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-8 md:mb-10 px-2 lg:px-0">
                         From tech conferences to local music festivals, find and book the events you love with secure ticketing.
                     </p>
 
